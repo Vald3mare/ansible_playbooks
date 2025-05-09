@@ -1,0 +1,46 @@
+---
+- name: Установка зависимостей
+  apt:
+    name: '{{ item }}'
+    state: present
+    update_cache: yes
+  with_items: '{{ dependencies }}'
+
+- name: Загрузка WordPress
+  get_url:
+    url: '{{ wp_download_url }}'
+    dest: /tmp/wordpress.tar.gz
+
+- name: Извлечение WordPress
+  unarchive:
+    src: /tmp/wordpress.tar.gz
+    dest: /var/www/
+    copy: no
+
+- name: Удаление index.html Apache
+  file:
+    path: /var/www/html/index.html
+    state: absent
+
+- name: Перемещение файлов WordPress
+  copy:
+    src: /var/www/wordpress/
+    dest: /var/www/html/
+    remote_src: yes
+    owner: www-data
+    group: www-data
+    mode: '0755'
+
+- name: Генерация wp-config.php из шаблона
+  template:
+    src: wp-config.php.j2
+    dest: /var/www/html/wp-config.php
+    owner: www-data
+    group: www-data
+    mode: '0644'
+
+- name: Запуск Apache
+  service:
+    name: apache2
+    state: started
+    enabled: yes

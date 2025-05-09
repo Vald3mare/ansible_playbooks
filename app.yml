@@ -1,0 +1,6 @@
+- name: Настройка веб-сервера и базы данных
+  hosts: web
+  become: true
+  roles:
+    - mysql
+    - wordpress
